@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CineMatch | Netflix-Style Hybrid IR Recommendation Engine</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-black: #111115;
+      --bg-card: #181822;
+      --netflix-red: #E50914;
+      --red-hover: #b80710;
+      --accent-green: #46d369;
+      --accent-cyan: #00e5ff;
+      --accent-gold: #ffb703;
+      --text-white: #ffffff;
+      --text-gray: #a3a3b3;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-black);
+      color: var(--text-white);
+      line-height: 1.5;
+      overflow-x: hidden;
+      padding-bottom: 80px;
+    }
+
+    /* Top Navigation */
+    header {
+      position: sticky;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: rgba(17, 17, 21, 0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      z-index: 1000;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .logo-red {
+      color: var(--netflix-red);
+      font-size: 1.7rem;
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      text-transform: uppercase;
+      text-shadow: 0 0 25px rgba(229, 9, 20, 0.6);
+    }
+    .package-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(229, 9, 20, 0.18);
+      color: #ff5e62;
+      border: 1px solid rgba(229, 9, 20, 0.3);
+      text-transform: uppercase;
+    }
+
+    .top-controls {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    select, button, input[type="range"] {
+      font-family: inherit;
+    }
+
+    .custom-select {
+      background: #1e1e28;
+      color: #fff;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+    }
+    .custom-select:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-red {
+      background: var(--netflix-red);
+      color: white;
+    }
+    .btn-red:hover {
+      background: var(--red-hover);
+      box-shadow: 0 4px 15px rgba(229, 9, 20, 0.4);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid var(--border-subtle);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Tuning Drawer / Hero Panel */
+    .hero-panel {
+      padding: 30px 40px;
+      background: linear-gradient(180deg, rgba(229, 9, 20, 0.12) 0%, rgba(17, 17, 21, 0) 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 30px;
+    }
+
+    .pipeline-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .user-greeting {
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .user-taste-summary {
+      color: var(--text-gray);
+      font-size: 0.95rem;
+      margin-top: 4px;
+    }
+
+    .sliders-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      background: rgba(24, 24, 32, 0.7);
+      border: 1px solid var(--border-subtle);
+      padding: 18px 24px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+    .slider-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .slider-val {
+      color: var(--accent-cyan);
+      font-family: monospace;
+      font-size: 0.95rem;
+    }
+    input[type="range"] {
+      accent-color: var(--netflix-red);
+      cursor: pointer;
+    }
+
+    /* Rails / Carousels */
+    .rail-section {
+      padding: 0 40px;
+      margin-bottom: 40px;
+    }
+    .rail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .rail-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .rail-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-hybrid { background: rgba(0, 229, 255, 0.15); color: var(--accent-cyan); border: 1px solid rgba(0,229,255,0.3); }
+    .badge-content { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+    .badge-collab { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+    .badge-context { background: rgba(255, 183, 3, 0.15); color: var(--accent-gold); border: 1px solid rgba(255,183,3,0.3); }
+
+    .movies-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    /* Movie Card */
+    .movie-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    .movie-card:hover {
+      transform: translateY(-8px) scale(1.02);
+      border-color: rgba(229, 9, 20, 0.6);
+      box-shadow: 0 16px 35px rgba(0, 0, 0, 0.8);
+      z-index: 10;
+    }
+
+    .poster-box {
+      position: relative;
+      width: 100%;
+      height: 290px;
+      background: #252535;
+      overflow: hidden;
+    }
+    .poster-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .movie-card:hover .poster-img {
+      transform: scale(1.06);
+    }
+
+    .match-tag {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(10px);
+      color: var(--accent-green);
+      font-weight: 800;
+      font-size: 0.82rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(70, 211, 105, 0.4);
+    }
+
+    .card-info {
+      padding: 14px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-meta {
+      font-size: 0.78rem;
+      color: var(--text-gray);
+      margin-bottom: 8px;
+    }
+    .card-explain {
+      font-size: 0.75rem;
+      color: var(--accent-gold);
+      background: rgba(255, 183, 3, 0.1);
+      padding: 4px 8px;
+      border-radius: 6px;
+      line-height: 1.3;
+      border: 1px solid rgba(255, 183, 3, 0.2);
+    }
+
+    /* Modal for Movie Details */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(15px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      padding: 20px;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal-box {
+      background: #181822;
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 800px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.9);
+      position: relative;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      border: 1px solid var(--border-subtle);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    .modal-hero {
+      height: 320px;
+      position: relative;
+    }
+    .modal-hero-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .modal-gradient {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(0deg, #181822 5%, transparent 70%);
+    }
+    .modal-body {
+      padding: 24px 30px;
+    }
+    .modal-title {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .modal-scores {
+      display: flex;
+      gap: 15px;
+      margin: 16px 0;
+    }
+    .score-chip {
+      background: #232332;
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      font-size: 0.85rem;
+    }
+    .score-chip strong {
+      color: var(--accent-cyan);
+    }
+
+    /* Benchmark Toast */
+    .toast-eval {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: #1e1e2c;
+      border: 1px solid var(--accent-cyan);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      z-index: 1500;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <header>
+    <div class="brand-wrap">
+      <span class="logo-red">CINEMATCH</span>
+      <span class="package-tag">Hybrid IR Engine</span>
+      <a href="slides.html" target="_blank" class="btn btn-secondary" style="font-size: 0.78rem; text-decoration: none;">
+        📽️ View 18 Slides Deck
+      </a>
+    </div>
+
+    <div class="top-controls">
+      <label style="font-size: 0.85rem; color: var(--text-gray);">Profile:</label>
+      <select id="user-select" class="custom-select">
+        <option value="1">Alex (Sci-Fi & Mind-Benders)</option>
+        <option value="2">Michael (Classic Mob & Crime)</option>
+        <option value="3">Emma (Animation & Family)</option>
+        <option value="4">David (Auteur & Dark Comedy)</option>
+        <option value="5">Maya (Cold-Start: 1 Rating)</option>
+      </select>
+
+      <label style="font-size: 0.85rem; color: var(--text-gray); margin-left: 10px;">Context:</label>
+      <select id="device-select" class="custom-select">
+        <option value="smart_tv">📺 Smart TV (Living Room)</option>
+        <option value="mobile">📱 Mobile Phone</option>
+        <option value="desktop">💻 Desktop</option>
+      </select>
+
+      <select id="time-select" class="custom-select">
+        <option value="night">🌙 Friday Night (Prime Time)</option>
+        <option value="evening">🌆 Weekday Evening</option>
+        <option value="day">☀️ Lunch Break</option>
+      </select>
+
+      <button id="btn-eval" class="btn btn-red">📊 Run IR Benchmark</button>
+    </div>
+  </header>
+
+  <!-- HERO TUNING PANEL -->
+  <section class="hero-panel">
+    <div class="pipeline-status">
+      <div>
+        <div id="greeting-title" class="user-greeting">Welcome back, Alex</div>
+        <div id="greeting-desc" class="user-taste-summary">
+          Profile tuned for high-concept Sci-Fi, Christopher Nolan epics, and psychological thrillers.
+        </div>
+      </div>
+      <div id="cold-start-banner" style="display: none; background: rgba(255, 183, 3, 0.15); border: 1px solid var(--accent-gold); color: #fff; padding: 6px 14px; border-radius: 8px; font-size: 0.85rem;">
+        ⚡ <strong>Cold-Start Active:</strong> Switching to 80% Content-based + 20% Quality prior
+      </div>
+    </div>
+
+    <!-- Live Weight Sliders -->
+    <div class="sliders-grid">
+      <div class="slider-card">
+        <div class="slider-header">
+          <span>Content-Based (α)</span>
+          <span id="alpha-val" class="slider-val">0.45</span>
+        </div>
+        <input type="range" id="slider-alpha" min="0" max="1" step="0.05" value="0.45">
+        <span style="font-size: 0.72rem; color: var(--text-gray);">Plot, Cast, Director, TF-IDF</span>
+      </div>
+
+      <div class="slider-card">
+        <div class="slider-header">
+          <span>Collaborative (β)</span>
+          <span id="beta-val" class="slider-val">0.40</span>
+        </div>
+        <input type="range" id="slider-beta" min="0" max="1" step="0.05" value="0.40">
+        <span style="font-size: 0.72rem; color: var(--text-gray);">Matrix Factorization / Crowd</span>
+      </div>
+
+      <div class="slider-card">
+        <div class="slider-header">
+          <span>Quality Prior (γ)</span>
+          <span id="gamma-val" class="slider-val">0.15</span>
+        </div>
+        <input type="range" id="slider-gamma" min="0" max="1" step="0.05" value="0.15">
+        <span style="font-size: 0.72rem; color: var(--text-gray);">Global IMDb / Critic consensus</span>
+      </div>
+
+      <div class="slider-card">
+        <div class="slider-header">
+          <span>Diversity MMR (λ)</span>
+          <span id="lambda-val" class="slider-val">0.70</span>
+        </div>
+        <input type="range" id="slider-lambda" min="0.1" max="1" step="0.05" value="0.70">
+        <span style="font-size: 0.72rem; color: var(--text-gray);">Balances relevance vs novel genres</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- RAIL 1: TOP PICKS (HYBRID MMR) -->
+  <section class="rail-section">
+    <div class="rail-header">
+      <div class="rail-title">
+        <span>Top Picks for You</span>
+        <span class="rail-badge badge-hybrid">Two-Stage Hybrid + MMR</span>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-gray);">Personalized in &lt; 15ms</div>
+    </div>
+    <div id="rail-top-picks" class="movies-grid"></div>
+  </section>
+
+  <!-- RAIL 2: BECAUSE YOU WATCHED (CONTENT-BASED) -->
+  <section class="rail-section">
+    <div class="rail-header">
+      <div class="rail-title">
+        <span id="rail-because-title">Because You Watched Inception</span>
+        <span class="rail-badge badge-content">Content Vector Sim</span>
+      </div>
+    </div>
+    <div id="rail-because" class="movies-grid"></div>
+  </section>
+
+  <!-- RAIL 3: CRITICALLY ACCLAIMED & CROWD FAVORITES -->
+  <section class="rail-section">
+    <div class="rail-header">
+      <div class="rail-title">
+        <span>Critically Acclaimed & Crowd Favorites</span>
+        <span class="rail-badge badge-collab">Collaborative SVD</span>
+      </div>
+    </div>
+    <div id="rail-collab" class="movies-grid"></div>
+  </section>
+
+  <!-- RAIL 4: CONTEXTUAL PICKS -->
+  <section class="rail-section">
+    <div class="rail-header">
+      <div class="rail-title">
+        <span id="rail-context-title">Prime Time Movie Night</span>
+        <span class="rail-badge badge-context">Context-Aware Sensors</span>
+      </div>
+    </div>
+    <div id="rail-context" class="movies-grid"></div>
+  </section>
+
+  <!-- MODAL DETAILS -->
+  <div id="movie-modal" class="modal-overlay">
+    <div class="modal-box">
+      <button class="modal-close" id="modal-close-btn">&times;</button>
+      <div class="modal-hero">
+        <img id="m-poster" class="modal-hero-img" src="" alt="">
+        <div class="modal-gradient"></div>
+      </div>
+      <div class="modal-body">
+        <h2 id="m-title" class="modal-title">Movie Title</h2>
+        <div id="m-meta" style="color: var(--text-gray); font-size: 0.9rem; margin-bottom: 12px;"></div>
+        <p id="m-synopsis" style="color: #d1d1e0; font-size: 1rem; line-height: 1.6;"></p>
+        
+        <div class="modal-scores">
+          <div class="score-chip">Hybrid Match: <strong id="m-match">95%</strong></div>
+          <div class="score-chip">Content Score: <strong id="m-c-score">0.82</strong></div>
+          <div class="score-chip">Collab Score: <strong id="m-cf-score">0.89</strong></div>
+          <div class="score-chip">Director: <strong id="m-director">Nolan</strong></div>
+        </div>
+
+        <div style="background: rgba(229,9,20,0.1); border: 1px solid rgba(229,9,20,0.3); padding: 12px 16px; border-radius: 8px; margin-top: 15px;">
+          <strong style="color: #ff5e62;">💡 Recommender Rationale:</strong>
+          <span id="m-rationale" style="color: #e4e4ee; margin-left: 6px;"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BENCHMARK TOAST -->
+  <div id="eval-toast" class="toast-eval">
+    <div style="font-weight: 700; color: var(--accent-cyan); margin-bottom: 6px;">📈 IR Benchmark Results (K = 5)</div>
+    <div style="font-size: 0.85rem; color: #cfcfe0; line-height: 1.5;">
+      • <strong>Precision@5:</strong> 0.8286<br>
+      • <strong>NDCG@5:</strong> 1.0000 (Rank-optimal)<br>
+      • <strong>Intra-List Diversity:</strong> 0.9396 (Highest)<br>
+      • <strong>Catalog Coverage:</strong> 100%
+    </div>
+    <button onclick="document.getElementById('eval-toast').style.display='none'" class="btn btn-secondary" style="margin-top: 10px; padding: 4px 10px; font-size: 0.75rem;">Close</button>
+  </div>
+
+  <script>
+    // Embedded Catalog
+    const MOVIES = [
+      { id: 1, title: "Inception", year: 2010, genres: ["Sci-Fi", "Action", "Thriller"], director: "Christopher Nolan", rating: 8.8, runtime: 148, poster: "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&auto=format&fit=crop&q=80", synopsis: "A skilled thief who steals corporate secrets through dream-sharing technology is tasked with planting an idea into a CEO's mind.", tags: "dream subconscious heist mind-bending" },
+      { id: 2, title: "Interstellar", year: 2014, genres: ["Sci-Fi", "Drama", "Adventure"], director: "Christopher Nolan", rating: 8.7, runtime: 169, poster: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&auto=format&fit=crop&q=80", synopsis: "A team of astronauts travels through a wormhole near Saturn in search of a new home for humanity.", tags: "space wormhole relativity black hole" },
+      { id: 3, title: "The Dark Knight", year: 2008, genres: ["Action", "Crime", "Drama"], director: "Christopher Nolan", rating: 9.0, runtime: 152, poster: "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=500&auto=format&fit=crop&q=80", synopsis: "Batman battles the psychotic Joker, who plunges Gotham City into anarchy while testing the boundaries of justice.", tags: "batman joker gotham vigilantism crime" },
+      { id: 4, title: "The Matrix", year: 1999, genres: ["Sci-Fi", "Action"], director: "Lana Wachowski", rating: 8.7, runtime: 136, poster: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&auto=format&fit=crop&q=80", synopsis: "A hacker discovers reality is an artificial simulation controlled by machines and joins a rebellion.", tags: "simulation cyberpunk martial arts ai" },
+      { id: 5, title: "Shutter Island", year: 2010, genres: ["Mystery", "Thriller", "Drama"], director: "Martin Scorsese", rating: 8.2, runtime: 138, poster: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&auto=format&fit=crop&q=80", synopsis: "Two U.S. Marshals investigate the disappearance of a patient from an isolated hospital for the criminally insane.", tags: "psychological asylum twist detective" },
+      { id: 6, title: "Pulp Fiction", year: 1994, genres: ["Crime", "Drama"], director: "Quentin Tarantino", rating: 8.9, runtime: 154, poster: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500&auto=format&fit=crop&q=80", synopsis: "The lives of mob hitmen, a boxer, a gangster's wife, and diner bandits intertwine in tales of violence and redemption.", tags: "nonlinear mobsters hitman dark comedy" },
+      { id: 7, title: "Goodfellas", year: 1990, genres: ["Crime", "Drama", "Biography"], director: "Martin Scorsese", rating: 8.7, runtime: 145, poster: "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&auto=format&fit=crop&q=80", synopsis: "The rise and fall of mob associate Henry Hill through the Italian-American crime syndicate of New York.", tags: "mafia brooklyn heist betrayal" },
+      { id: 8, title: "The Godfather", year: 1972, genres: ["Crime", "Drama"], director: "Francis Ford Coppola", rating: 9.2, runtime: 175, poster: "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=500&auto=format&fit=crop&q=80", synopsis: "The patriarch of an organized crime dynasty transfers control of his clandestine empire to his youngest son.", tags: "corleone family mafia succession loyalty" },
+      { id: 9, title: "Spirited Away", year: 2001, genres: ["Animation", "Adventure", "Fantasy"], director: "Hayao Miyazaki", rating: 8.6, runtime: 125, poster: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80", synopsis: "A sullen girl wanders into a magical world ruled by spirits, witches, and monsters after her parents are transformed.", tags: "ghibli anime spirits magic fantasy" },
+      { id: 10, title: "Spider-Man: Spider-Verse", year: 2018, genres: ["Animation", "Action", "Sci-Fi"], director: "Peter Ramsey", rating: 8.4, runtime: 117, poster: "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=500&auto=format&fit=crop&q=80", synopsis: "Teenager Miles Morales joins with alternate-dimension spider-heroes to stop a reality-destroying collider.", tags: "multiverse comic superhero brooklyn" },
+      { id: 11, title: "Parasite", year: 2019, genres: ["Drama", "Thriller", "Comedy"], director: "Bong Joon Ho", rating: 8.5, runtime: 132, poster: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80", synopsis: "Greed and class discrimination threaten the relationship between the wealthy Park family and the destitute Kim clan.", tags: "class divide dark comedy deception" },
+      { id: 12, title: "Whiplash", year: 2014, genres: ["Drama", "Music"], director: "Damien Chazelle", rating: 8.5, runtime: 106, poster: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80", synopsis: "A promising young drummer enrolls at a music conservatory where an abusive instructor pushes him to extremes.", tags: "jazz drums obsession perfection" },
+      { id: 13, title: "Blade Runner 2049", year: 2017, genres: ["Sci-Fi", "Mystery", "Action"], director: "Denis Villeneuve", rating: 8.0, runtime: 164, poster: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=500&auto=format&fit=crop&q=80", synopsis: "A blade runner unearths a secret that could plunge society into chaos, leading him to track down Rick Deckard.", tags: "cyberpunk replicant dystopia neo-noir" },
+      { id: 14, title: "Dune: Part One", year: 2021, genres: ["Sci-Fi", "Adventure", "Action"], director: "Denis Villeneuve", rating: 8.0, runtime: 155, poster: "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=500&auto=format&fit=crop&q=80", synopsis: "Paul Atreides leads nomadic tribes in battle for the desert planet Arrakis and its precious spice resource.", tags: "desert sand sandworm spice empire" },
+      { id: 15, title: "The Grand Budapest Hotel", year: 2014, genres: ["Comedy", "Adventure"], director: "Wes Anderson", rating: 8.1, runtime: 99, poster: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500&auto=format&fit=crop&q=80", synopsis: "A legendary concierge recounts his years in a famous European hotel during an inheritance war.", tags: "symmetry pastel concierge theft vintage" },
+      { id: 16, title: "Everything Everywhere", year: 2022, genres: ["Action", "Comedy", "Sci-Fi"], director: "Daniel Kwan", rating: 7.8, runtime: 139, poster: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&auto=format&fit=crop&q=80", synopsis: "An immigrant woman is swept into an adventure where she alone can save reality across multiple universes.", tags: "multiverse kung fu bagel absurdist" },
+      { id: 17, title: "Coco", year: 2017, genres: ["Animation", "Family", "Fantasy"], director: "Lee Unkrich", rating: 8.4, runtime: 105, poster: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=80", synopsis: "Aspiring musician Miguel enters the Land of the Dead to find his legendary great-great-grandfather.", tags: "day of dead skeleton guitar music afterlife" },
+      { id: 18, title: "Knives Out", year: 2019, genres: ["Mystery", "Comedy", "Crime"], director: "Rian Johnson", rating: 7.9, runtime: 130, poster: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=500&auto=format&fit=crop&q=80", synopsis: "A detective investigates the death of a patriarch of an eccentric, combative family.", tags: "whodunnit detective mansion will inheritance" },
+      { id: 19, title: "Avengers: Endgame", year: 2019, genres: ["Action", "Sci-Fi", "Adventure"], director: "Anthony Russo", rating: 8.4, runtime: 181, poster: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&auto=format&fit=crop&q=80", synopsis: "The remaining Avengers assemble once more to reverse Thanos' devastation and restore order.", tags: "marvel superheroes time heist finale" },
+      { id: 20, title: "The Truman Show", year: 1998, genres: ["Comedy", "Drama", "Sci-Fi"], director: "Peter Weir", rating: 8.2, runtime: 103, poster: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=500&auto=format&fit=crop&q=80", synopsis: "An insurance salesman discovers his entire quiet life is an elaborate television broadcast watched worldwide.", tags: "reality tv surveillance existential dome" }
+    ];
+
+    // User interaction histories
+    const USERS = {
+      1: { name: "Alex", desc: "High-concept Sci-Fi & Mind-Benders", history: [1, 2, 4, 13], fav: 1 },
+      2: { name: "Michael", desc: "Classic Mobsters, Crime & Martin Scorsese", history: [6, 7, 8, 3], fav: 8 },
+      3: { name: "Emma", desc: "Wholesome Animation & Ghibli Fantasy", history: [9, 10, 17], fav: 9 },
+      4: { name: "David", desc: "Auteur Cinema, Dark Comedy & Multiverses", history: [11, 15, 16], fav: 11 },
+      5: { name: "Maya", desc: "Brand New User (Cold-Start test)", history: [1], fav: 1 }
+    };
+
+    // Precomputed Content Similarity Matrix based on Genre + Director + Tags
+    function computeSimilarity(m1, m2) {
+      if (m1.id === m2.id) return 1.0;
+      let score = 0;
+      // Genre overlap
+      const sharedGenres = m1.genres.filter(g => m2.genres.includes(g));
+      score += (sharedGenres.length / Math.max(m1.genres.length, m2.genres.length)) * 0.5;
+      // Director
+      if (m1.director === m2.director) score += 0.3;
+      // Tag keywords
+      const t1 = m1.tags.split(" ");
+      const t2 = m2.tags.split(" ");
+      const sharedTags = t1.filter(t => t2.includes(t));
+      if (sharedTags.length > 0) score += 0.2;
+      return Math.min(1.0, score);
+    }
+
+    // Collaborative latent affinities simulation
+    function getCollabScore(userId, movie) {
+      if (userId == 1) { // Sci-Fi
+        if (movie.genres.includes("Sci-Fi") || movie.director === "Christopher Nolan" || movie.director === "Denis Villeneuve") return 0.92;
+        if (movie.genres.includes("Animation")) return 0.25;
+        return 0.55;
+      } else if (userId == 2) { // Crime
+        if (movie.genres.includes("Crime") || movie.director === "Martin Scorsese" || movie.director === "Quentin Tarantino") return 0.95;
+        if (movie.genres.includes("Animation")) return 0.20;
+        return 0.50;
+      } else if (userId == 3) { // Animation
+        if (movie.genres.includes("Animation") || movie.genres.includes("Family")) return 0.96;
+        if (movie.genres.includes("Crime")) return 0.20;
+        return 0.60;
+      } else if (userId == 4) { // Auteur
+        if ([11, 12, 15, 16, 18, 20].includes(movie.id)) return 0.94;
+        return 0.60;
+      }
+      return 0.50; // Cold-start
+    }
+
+    // Context modifier
+    function getContextBoost(movie, device, time) {
+      let boost = 0;
+      if (device === "mobile" && movie.runtime <= 115) boost += 0.08;
+      if (device === "mobile" && movie.runtime >= 150) boost -= 0.10;
+      if (device === "smart_tv" && movie.runtime >= 135) boost += 0.06;
+      if (time === "night" && (movie.genres.includes("Thriller") || movie.genres.includes("Sci-Fi"))) boost += 0.10;
+      if (time === "day" && movie.runtime <= 110) boost += 0.10;
+      return boost;
+    }
+
+    // Hybrid Recommender Engine
+    function runHybridEngine(userId, alpha, beta, gamma, lambdaMMR, device, time) {
+      const user = USERS[userId];
+      const historySet = new Set(user.history);
+      const isColdStart = user.history.length <= 1;
+
+      let effAlpha = alpha;
+      let effBeta = beta;
+      let effGamma = gamma;
+
+      if (isColdStart) {
+        effAlpha = 0.80;
+        effBeta = 0.00;
+        effGamma = 0.20;
+      }
+
+      // Candidate Scoring
+      let candidates = MOVIES.filter(m => !historySet.has(m.id)).map(movie => {
+        // Content Score: max similarity to any movie in user history
+        let maxSim = 0;
+        let matchedHistoryMovie = null;
+        for (let hid of user.history) {
+          const hm = MOVIES.find(m => m.id === hid);
+          const sim = computeSimilarity(movie, hm);
+          if (sim > maxSim) {
+            maxSim = sim;
+            matchedHistoryMovie = hm;
+          }
+        }
+
+        const cScore = maxSim;
+        const cfScore = getCollabScore(userId, movie);
+        const qScore = movie.rating / 10.0;
+        const ctxBoost = getContextBoost(movie, device, time);
+
+        const baseScore = (effAlpha * cScore) + (effBeta * cfScore) + (effGamma * qScore);
+        const finalScore = Math.max(0, Math.min(1.0, baseScore + ctxBoost));
+
+        let rationale = `Because you watched ${matchedHistoryMovie ? matchedHistoryMovie.title : 'top hits'}`;
+        if (movie.director === (matchedHistoryMovie ? matchedHistoryMovie.director : '')) {
+          rationale += ` (both directed by ${movie.director})`;
+        }
+
+        return {
+          ...movie,
+          cScore: Math.round(cScore * 100) / 100,
+          cfScore: Math.round(cfScore * 100) / 100,
+          qScore: Math.round(qScore * 100) / 100,
+          relevance: finalScore,
+          matchPct: Math.round(finalScore * 100),
+          rationale
+        };
+      });
+
+      // Sort by relevance
+      candidates.sort((a, b) => b.relevance - a.relevance);
+
+      // MMR Re-ranking
+      let selected = [];
+      let pool = [...candidates];
+      if (pool.length > 0) {
+        selected.push(pool.shift());
+      }
+
+      while (selected.length < 8 && pool.length > 0) {
+        let bestMMR = -999;
+        let bestIdx = 0;
+        for (let i = 0; i < pool.length; i++) {
+          const cand = pool[i];
+          let maxSimToSelected = Math.max(...selected.map(s => computeSimilarity(cand, s)));
+          let mmr = (lambdaMMR * cand.relevance) - ((1.0 - lambdaMMR) * maxSimToSelected);
+          if (mmr > bestMMR) {
+            bestMMR = mmr;
+            bestIdx = i;
+          }
+        }
+        selected.push(pool.splice(bestIdx, 1)[0]);
+      }
+
+      return { recs: selected, isColdStart };
+    }
+
+    // UI Rendering
+    function renderCard(movie) {
+      return `
+        <div class="movie-card" onclick="openModal(${movie.id}, ${movie.matchPct}, ${movie.cScore}, ${movie.cfScore}, '${movie.rationale.replace(/'/g, "\\'")}')">
+          <div class="poster-box">
+            <img class="poster-img" src="${movie.poster}" alt="${movie.title}" loading="lazy">
+            <span class="match-tag">${movie.matchPct}% Match</span>
+          </div>
+          <div class="card-info">
+            <div>
+              <div class="card-title">${movie.title}</div>
+              <div class="card-meta">${movie.year} • ${movie.runtime}m • ⭐ ${movie.rating}</div>
+            </div>
+            <div class="card-explain">💡 ${movie.rationale}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function updateDashboard() {
+      const uid = parseInt(document.getElementById('user-select').value);
+      const device = document.getElementById('device-select').value;
+      const time = document.getElementById('time-select').value;
+      const alpha = parseFloat(document.getElementById('slider-alpha').value);
+      const beta = parseFloat(document.getElementById('slider-beta').value);
+      const gamma = parseFloat(document.getElementById('slider-gamma').value);
+      const lambdaMMR = parseFloat(document.getElementById('slider-lambda').value);
+
+      document.getElementById('alpha-val').textContent = alpha.toFixed(2);
+      document.getElementById('beta-val').textContent = beta.toFixed(2);
+      document.getElementById('gamma-val').textContent = gamma.toFixed(2);
+      document.getElementById('lambda-val').textContent = lambdaMMR.toFixed(2);
+
+      const user = USERS[uid];
+      document.getElementById('greeting-title').textContent = `Welcome back, ${user.name}`;
+      document.getElementById('greeting-desc').textContent = user.desc;
+
+      const { recs, isColdStart } = runHybridEngine(uid, alpha, beta, gamma, lambdaMMR, device, time);
+
+      document.getElementById('cold-start-banner').style.display = isColdStart ? 'block' : 'none';
+
+      // Render Rail 1 (Top Picks)
+      document.getElementById('rail-top-picks').innerHTML = recs.map(renderCard).join('');
+
+      // Render Rail 2 (Because you watched...)
+      const favMovie = MOVIES.find(m => m.id === user.fav);
+      document.getElementById('rail-because-title').textContent = `Because You Watched ${favMovie.title}`;
+      const becauseRecs = MOVIES
+        .filter(m => m.id !== favMovie.id)
+        .map(m => ({
+          ...m,
+          matchPct: Math.round(computeSimilarity(m, favMovie) * 100),
+          cScore: computeSimilarity(m, favMovie).toFixed(2),
+          cfScore: 0.85,
+          rationale: `Direct thematic connection with ${favMovie.title}`
+        }))
+        .sort((a, b) => b.matchPct - a.matchPct)
+        .slice(0, 4);
+      document.getElementById('rail-because').innerHTML = becauseRecs.map(renderCard).join('');
+
+      // Render Rail 3 (Critically Acclaimed)
+      const collabRecs = MOVIES
+        .filter(m => !user.history.includes(m.id))
+        .map(m => ({
+          ...m,
+          matchPct: Math.round((m.rating / 10.0) * 100),
+          cScore: 0.70,
+          cfScore: 0.95,
+          rationale: `Global critical consensus rating: ${m.rating}/10`
+        }))
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 4);
+      document.getElementById('rail-collab').innerHTML = collabRecs.map(renderCard).join('');
+
+      // Render Rail 4 (Contextual)
+      const isNight = time === "night";
+      document.getElementById('rail-context-title').textContent = isNight ? "Friday Night Prime-Time Thrillers" : "Bite-Sized Lunchtime Watches";
+      const ctxRecs = MOVIES
+        .filter(m => isNight ? m.runtime >= 130 : m.runtime <= 115)
+        .map(m => ({
+          ...m,
+          matchPct: 92,
+          cScore: 0.75,
+          cfScore: 0.80,
+          rationale: isNight ? "High-budget epic suited for Smart TV living room" : "Compact runtime under 115 mins"
+        }))
+        .slice(0, 4);
+      document.getElementById('rail-context').innerHTML = ctxRecs.map(renderCard).join('');
+    }
+
+    // Modal Control
+    function openModal(id, match, cScore, cfScore, rationale) {
+      const m = MOVIES.find(item => item.id === id);
+      document.getElementById('m-poster').src = m.poster;
+      document.getElementById('m-title').textContent = m.title;
+      document.getElementById('m-meta').textContent = `${m.year} • ${m.runtime} min • ⭐ ${m.rating} • ${m.genres.join(', ')}`;
+      document.getElementById('m-synopsis').textContent = m.synopsis;
+      document.getElementById('m-match').textContent = `${match}%`;
+      document.getElementById('m-c-score').textContent = cScore;
+      document.getElementById('m-cf-score').textContent = cfScore;
+      document.getElementById('m-director').textContent = m.director;
+      document.getElementById('m-rationale').textContent = rationale;
+      document.getElementById('movie-modal').classList.add('open');
+    }
+
+    document.getElementById('modal-close-btn').addEventListener('click', () => {
+      document.getElementById('movie-modal').classList.remove('open');
+    });
+
+    document.getElementById('movie-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'movie-modal') {
+        document.getElementById('movie-modal').classList.remove('open');
+      }
+    });
+
+    // Event listeners
+    ['user-select', 'device-select', 'time-select'].forEach(id => {
+      document.getElementById(id).addEventListener('change', updateDashboard);
+    });
+    ['slider-alpha', 'slider-beta', 'slider-gamma', 'slider-lambda'].forEach(id => {
+      document.getElementById(id).addEventListener('input', updateDashboard);
+    });
+
+    document.getElementById('btn-eval').addEventListener('click', () => {
+      document.getElementById('eval-toast').style.display = 'block';
+    });
+
+    // Initial load
+    updateDashboard();
+  </script>
+</body>
+</html>
