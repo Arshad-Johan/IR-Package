@@ -14,7 +14,7 @@ MOVIES_DATA = [
         "vote_average": 8.8,
         "vote_count": 34000,
         "runtime_min": 148,
-        "poster_url": "https://images.unsplash.com/photo-1534447677768-be436bb09401?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg",
         "tags": "dream subconscious heist mind-bending reality layered architecture"
     },
     {
@@ -28,7 +28,7 @@ MOVIES_DATA = [
         "vote_average": 8.7,
         "vote_count": 31000,
         "runtime_min": 169,
-        "poster_url": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
         "tags": "space exploration wormhole time dilation relativity black hole love survival"
     },
     {
@@ -42,7 +42,7 @@ MOVIES_DATA = [
         "vote_average": 9.0,
         "vote_count": 42000,
         "runtime_min": 152,
-        "poster_url": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
         "tags": "batman joker gotham vigilantism chaos justice morality crime thriller"
     },
     {
@@ -56,7 +56,7 @@ MOVIES_DATA = [
         "vote_average": 8.7,
         "vote_count": 29000,
         "runtime_min": 136,
-        "poster_url": "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg",
         "tags": "simulation cyberpunk martial arts ai rebellion red pill virtual reality"
     },
     {
@@ -70,7 +70,7 @@ MOVIES_DATA = [
         "vote_average": 8.2,
         "vote_count": 22000,
         "runtime_min": 138,
-        "poster_url": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/nrmXQ0zcZUL8jFLrakWc90IR8z9.jpg",
         "tags": "psychological thriller asylum plot twist hallucination detective trauma storm"
     },
     {
@@ -84,7 +84,7 @@ MOVIES_DATA = [
         "vote_average": 8.9,
         "vote_count": 35000,
         "runtime_min": 154,
-        "poster_url": "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg",
         "tags": "nonlinear dialogue mobsters hitman dark comedy cult classic dance adrenaline"
     },
     {
@@ -98,7 +98,7 @@ MOVIES_DATA = [
         "vote_average": 8.7,
         "vote_count": 20000,
         "runtime_min": 145,
-        "poster_url": "https://images.unsplash.com/photo-1542751371-adc38448a05e?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg",
         "tags": "mafia organized crime brooklyn heist betrayal drugs rise and fall"
     },
     {
@@ -112,7 +112,7 @@ MOVIES_DATA = [
         "vote_average": 9.2,
         "vote_count": 38000,
         "runtime_min": 175,
-        "poster_url": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
         "tags": "corleone family mafia succession loyalty power italian syndicate legacy"
     },
     {
@@ -126,7 +126,7 @@ MOVIES_DATA = [
         "vote_average": 8.6,
         "vote_count": 18000,
         "runtime_min": 125,
-        "poster_url": "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/39wmItIWsg5sZMyRUHLkWBcuVCM.jpg",
         "tags": "ghibli anime spirits bathhouse fantasy magic dragon coming of age"
     },
     {
@@ -140,7 +140,7 @@ MOVIES_DATA = [
         "vote_average": 8.4,
         "vote_count": 21000,
         "runtime_min": 117,
-        "poster_url": "https://images.unsplash.com/photo-1635805737707-575885ab0820?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/iiZZdoQBEYBv6id8su7ImL0oCbD.jpg",
         "tags": "multiverse comic book animation hip hop superhero coming of age brooklyn"
     },
     {
@@ -154,7 +154,7 @@ MOVIES_DATA = [
         "vote_average": 8.5,
         "vote_count": 25000,
         "runtime_min": 132,
-        "poster_url": "https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/7IiTTgloJzvGI1TAYymCfbfl3vT.jpg",
         "tags": "class divide dark comedy deception architecture basement south korea tension"
     },
     {
@@ -168,7 +168,7 @@ MOVIES_DATA = [
         "vote_average": 8.5,
         "vote_count": 19000,
         "runtime_min": 106,
-        "poster_url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/iEhb00TGPucF0b4joM1ieyY026U.jpg",
         "tags": "jazz drums obsession perfection mentor abuse intense tempo passion"
     },
     {
@@ -182,7 +182,7 @@ MOVIES_DATA = [
         "vote_average": 8.0,
         "vote_count": 16000,
         "runtime_min": 164,
-        "poster_url": "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/gajva2L0rPYkEWjzgFlBXCAVBE5.jpg",
         "tags": "cyberpunk replicant neo-noir dystopia hologram memory identity existential"
     },
     {
@@ -196,7 +196,7 @@ MOVIES_DATA = [
         "vote_average": 8.0,
         "vote_count": 22000,
         "runtime_min": 155,
-        "poster_url": "https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/d5NXSklXo0qyIYkgV94XAgMIckC.jpg",
         "tags": "desert sand sandworm spice empire prophecy messiah political intrigue"
     },
     {
@@ -210,7 +210,7 @@ MOVIES_DATA = [
         "vote_average": 8.1,
         "vote_count": 17000,
         "runtime_min": 99,
-        "poster_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://upload.wikimedia.org/wikipedia/en/1/1c/The_Grand_Budapest_Hotel.png",
         "tags": "symmetry pastel concierge painting theft quirky caper europe vintage"
     },
     {
@@ -224,7 +224,7 @@ MOVIES_DATA = [
         "vote_average": 7.8,
         "vote_count": 15000,
         "runtime_min": 139,
-        "poster_url": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://upload.wikimedia.org/wikipedia/en/1/1e/Everything_Everywhere_All_at_Once.jpg",
         "tags": "multiverse bagel googly eyes family nihilism kung fu mother daughter absurdist"
     },
     {
@@ -238,7 +238,7 @@ MOVIES_DATA = [
         "vote_average": 8.4,
         "vote_count": 19000,
         "runtime_min": 105,
-        "poster_url": "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/eKi8dIrr8voobbaGzDpe8w0PVbC.jpg",
         "tags": "day of the dead skeleton guitar family memory mexico music afterlife"
     },
     {
@@ -252,7 +252,7 @@ MOVIES_DATA = [
         "vote_average": 7.9,
         "vote_count": 18000,
         "runtime_min": 130,
-        "poster_url": "https://images.unsplash.com/photo-1544717305-2782549b5136?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/pThyQovXQrw2m0s9x82twj48Jq4.jpg",
         "tags": "whodunnit detective mansion inheritance will poison eccentric family humor"
     },
     {
@@ -266,7 +266,7 @@ MOVIES_DATA = [
         "vote_average": 8.4,
         "vote_count": 27000,
         "runtime_min": 181,
-        "poster_url": "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg",
         "tags": "marvel superheroes time heist thanos infinity stones finale sacrifice iron man"
     },
     {
@@ -280,7 +280,7 @@ MOVIES_DATA = [
         "vote_average": 8.2,
         "vote_count": 21000,
         "runtime_min": 103,
-        "poster_url": "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=500&auto=format&fit=crop&q=80",
+        "poster_url": "https://image.tmdb.org/t/p/w500/aCHn2TXYJfzPXQKA6r9mKPbMlUB.jpg",
         "tags": "reality tv fake world surveillance escape existential paranoia dome sailboat"
     }
 ]

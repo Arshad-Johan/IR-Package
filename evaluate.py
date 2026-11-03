@@ -3,6 +3,7 @@ import pandas as pd
 from typing import List, Dict
 
 from engine.hybrid_engine import HybridRecommenderEngine
+from engine.bm25_retriever import BM25Retriever
 
 def dcg_at_k(r: List[float], k: int) -> float:
     """Computes Discounted Cumulative Gain at rank K."""
@@ -41,7 +42,7 @@ def intra_list_diversity(movie_ids: List[int], item_sim_matrix: np.ndarray, movi
 def run_ir_evaluation(k: int = 5):
     """
     Evaluates Content-Based vs Collaborative Filtering vs Hybrid vs Hybrid + MMR
-    across Precision@K, Recall@K, NDCG@K, Intra-List Diversity (ILD), and Catalog Coverage.
+    across Precision@K, Recall@K, F1-Measure@K, NDCG@K, Intra-List Diversity (ILD), and Catalog Coverage.
     """
     movies_df = pd.read_csv("movies.csv")
     ratings_df = pd.read_csv("ratings.csv")
@@ -65,6 +66,7 @@ def run_ir_evaluation(k: int = 5):
     for name, config in configurations.items():
         precisions = []
         recalls = []
+        f1_scores = []
         ndcgs = []
         diversities = []
         recommended_catalog_items = set()
@@ -74,7 +76,6 @@ def run_ir_evaluation(k: int = 5):
             # Ground truth: movies rated >= 3.5 are considered relevant
             relevant_items = set(user_ratings[user_ratings['rating'] >= 3.5]['movie_id'])
             
-            # Leave-one-out / hold-out simulation: user profile without unseen items
             recs = engine.recommend(
                 user_id=uid,
                 alpha=config['alpha'],
@@ -93,12 +94,19 @@ def run_ir_evaluation(k: int = 5):
             hits = [1 if mid in relevant_items else 0 for mid in rec_ids]
             
             # Precision@K
-            p_at_k = sum(hits) / k if k > 0 else 0
+            p_at_k = sum(hits) / k if k > 0 else 0.0
             precisions.append(p_at_k)
 
             # Recall@K
-            r_at_k = sum(hits) / len(relevant_items) if len(relevant_items) > 0 else 0
+            r_at_k = sum(hits) / len(relevant_items) if len(relevant_items) > 0 else 0.0
             recalls.append(r_at_k)
+
+            # F1-Measure@K (Unit 4: Performance metrics)
+            if (p_at_k + r_at_k) > 0:
+                f1_at_k = (2.0 * p_at_k * r_at_k) / (p_at_k + r_at_k)
+            else:
+                f1_at_k = 0.0
+            f1_scores.append(f1_at_k)
 
             # NDCG@K
             user_ndcg = ndcg_at_k(hits, k)
@@ -114,17 +122,18 @@ def run_ir_evaluation(k: int = 5):
             "Paradigm": name,
             f"Precision@{k}": round(np.mean(precisions), 4),
             f"Recall@{k}": round(np.mean(recalls), 4),
+            f"F1@{k}": round(np.mean(f1_scores), 4),
             f"NDCG@{k}": round(np.mean(ndcgs), 4),
             "Intra-List Diversity": round(np.mean(diversities), 4),
             "Catalog Coverage": f"{round(coverage * 100, 1)}%"
         })
 
     eval_df = pd.DataFrame(results)
-    print("\n" + "="*80)
+    print("\n" + "="*88)
     print(f"--- INFORMATION RETRIEVAL BENCHMARK EVALUATION (K = {k}) ---")
-    print("="*80)
+    print("="*88)
     print(eval_df.to_string(index=False))
-    print("="*80 + "\n")
+    print("="*88 + "\n")
     return eval_df
 
 if __name__ == "__main__":

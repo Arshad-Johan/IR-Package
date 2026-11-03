@@ -6,14 +6,16 @@ from engine.content_recommender import ContentBasedRecommender
 from engine.collaborative_recommender import CollaborativeRecommender
 from engine.context_filter import ContextFilter
 from engine.mmr_diversity import MMRDiversifier
+from engine.bm25_retriever import BM25Retriever
+from engine.thematic_clustering import ThematicClusterManager
 
 class HybridRecommenderEngine:
     """
     Two-Stage Information Retrieval Hybrid Recommendation Pipeline.
     
-    Stage 1: Candidate Generation (Retrieval Stage: High Recall)
+    Stage 1: Candidate Generation (Retrieval Stage: High Recall via VSM & BM25)
     Stage 2: Scoring & Hybrid Fusion (Content + Collaborative + Quality + Context)
-    Stage 3: Re-ranking & Diversity (MMR) & Themed Netflix Rails Generation
+    Stage 3: Re-ranking & Diversity (MMR) & Themed K-Means Rails Generation
     """
     def __init__(self, movies_df: pd.DataFrame, ratings_df: pd.DataFrame):
         self.movies_df = movies_df.copy().reset_index(drop=True)
@@ -27,6 +29,8 @@ class HybridRecommenderEngine:
             item_sim_matrix=self.content_engine.item_item_sim,
             movie_id_to_idx=self.content_engine.movie_id_to_idx
         )
+        self.bm25_retriever = BM25Retriever(self.movies_df)
+        self.cluster_manager = ThematicClusterManager(self.movies_df, n_clusters=4)
         
         # Normalized catalog quality prior (vote_average / 10.0)
         self.movies_df['quality_prior'] = self.movies_df['vote_average'] / 10.0
@@ -231,4 +235,30 @@ class HybridRecommenderEngine:
             top_k=6
         )
 
+        # Rail 5: K-Means Thematic Discovered Shelf (Unit 5: Unsupervised Clustering)
+        thematic_shelves = self.cluster_manager.get_thematic_shelves()
+        if thematic_shelves:
+            top_shelf = thematic_shelves[0]
+            shelf_movies = []
+            for m in top_shelf['movies'][:6]:
+                shelf_movies.append({
+                    "movie_id": m['movie_id'],
+                    "title": m['title'],
+                    "release_year": self.movies_df.loc[self.movies_df['movie_id'] == m['movie_id'], 'release_year'].values[0],
+                    "genres": m['genres'],
+                    "director": m['director'],
+                    "vote_average": m['vote_average'],
+                    "poster_url": m['poster_url'],
+                    "plot_synopsis": self.movies_df.loc[self.movies_df['movie_id'] == m['movie_id'], 'plot_synopsis'].values[0],
+                    "relevance_score": round(m['vote_average'] / 10.0, 3),
+                    "explanation": f"Discovered by K-Means Cluster: {', '.join(top_shelf['top_keywords'][:3])}"
+                })
+            rails[f"Explore: {top_shelf['label']}"] = shelf_movies
+
         return rails
+
+    def search_bm25(self, query: str, top_k: int = 5, query_expansion: bool = False) -> List[Dict]:
+        """
+        Executes Okapi BM25 Probabilistic Lexical Search with Porter Stemming (Units 2 & 3).
+        """
+        return self.bm25_retriever.search(query=query, top_k=top_k, query_expansion=query_expansion)

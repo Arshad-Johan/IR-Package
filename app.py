@@ -195,9 +195,10 @@ else:
     active_ratings = ratings_df[ratings_df['user_id'] == selected_user_id].to_dict('records')
 
 # Tabs
-tab_recs, tab_evaluate, tab_rate, tab_architecture = st.tabs([
+tab_recs, tab_evaluate, tab_bm25, tab_rate, tab_architecture = st.tabs([
     "🍿 Streaming Recommendations",
     "📊 IR Evaluation Benchmark",
+    "🔍 BM25 Search & Clusters",
     "⭐ Rate & Test Cold-Start",
     "🏛️ Pipeline Architecture"
 ])
@@ -321,6 +322,51 @@ with tab_evaluate:
             st.success("✅ Hybrid + MMR achieves the superior balance: highest Intra-List Diversity with optimal NDCG and 100% catalog coverage.")
     else:
         st.info("Click above to run the live IR evaluation suite.")
+
+with tab_bm25:
+    st.subheader("🔍 Okapi BM25 Probabilistic Search & Porter Stemmer (Units 2 & 3)")
+    st.write("Test lexical retrieval using the **Inverted Index**, **Porter Stemming**, and **Okapi BM25** probabilistic scoring.")
+    
+    col_bm1, col_bm2 = st.columns([3, 1])
+    with col_bm1:
+        bm25_query = st.text_input("Enter Search Terms (e.g. 'dream heist subconscious', 'space wormhole relativity', 'mobsters crime mafia')", value="dream heist subconscious")
+    with col_bm2:
+        enable_expansion = st.checkbox("Thesaurus Query Expansion", value=False, help="Expands query terms using thesaurus synonyms (Unit 4)")
+
+    if bm25_query:
+        # Show Porter Stemmer step
+        tokens_stemmed = engine.bm25_retriever.index.tokenize_and_stem(bm25_query)
+        st.markdown(f"**Porter Stemmed Tokens:** `{'`, `'.join(tokens_stemmed)}`")
+        
+        bm25_results = engine.search_bm25(bm25_query, top_k=5, query_expansion=enable_expansion)
+        
+        if bm25_results:
+            st.markdown(f"#### Ranked Results (Top {len(bm25_results)} by BM25 Score):")
+            bm_cols = st.columns(len(bm25_results))
+            for idx, res in enumerate(bm25_results):
+                with bm_cols[idx]:
+                    st.markdown(f"""
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); height: 100%;">
+                        <img src="{res['poster_url']}" style="width: 100%; border-radius: 6px; aspect-ratio: 2/3; object-fit: cover; margin-bottom: 8px;">
+                        <h4 style="margin: 0; font-size: 0.95rem;">{res['title']}</h4>
+                        <div style="font-size: 0.8rem; color: #ff5e62; font-weight: 700; margin: 4px 0;">BM25: {res['bm25_score']}</div>
+                        <div style="font-size: 0.75rem; color: #aaa;">{res['genres']}</div>
+                        <div style="font-size: 0.7rem; color: #4ade80; margin-top: 4px;">Matched: {', '.join(res['matched_terms'])}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
+            st.warning("No catalog documents matched the query terms.")
+
+    st.markdown("---")
+    st.subheader("🧩 K-Means Thematic Document Clusters (Unit 5: Unsupervised Clustering)")
+    st.write("Unsupervised grouping of movie documents into thematic clusters based on TF-IDF feature centroids.")
+    
+    shelves = engine.cluster_manager.get_thematic_shelves()
+    for sh in shelves:
+        with st.expander(f"📁 Cluster {sh['cluster_id']}: {sh['label']} ({sh['movie_count']} titles)", expanded=True):
+            st.markdown(f"**Top Centroid Discriminative Keywords:** `{'`, `'.join(sh['top_keywords'])}`")
+            cluster_movie_titles = [m['title'] for m in sh['movies']]
+            st.write(f"**Included Movies:** {', '.join(cluster_movie_titles)}")
 
 with tab_rate:
     st.subheader("⭐ Interactive Watch & Rating Simulation")
